@@ -18,15 +18,18 @@ Linux 每日定时关机单程序。一个二进制同时提供配置、取消�
 
 ```sh
 cargo install daily-poweroff
+sudo install -m 0755 "$HOME/.cargo/bin/daily-poweroff" /usr/local/bin/daily-poweroff
 sudo daily-poweroff install-systemd
 ```
+
+额外的 `install` 步骤会把二进制放到系统 PATH 中，避免 `sudo` 的 PATH 不包含 `$HOME/.cargo/bin` 时找不到 `daily-poweroff`。
 
 ## 从 GitHub Releases 安装
 
 从项目 Releases 页面下载预构建二进制：
 
 ```sh
-VERSION=v0.1.0
+VERSION=v0.1.1
 ARCH=x86_64-unknown-linux-gnu
 curl -L -o daily-poweroff \
   "https://github.com/L4nterns/daily-poweroff/releases/download/${VERSION}/daily-poweroff-${ARCH}"

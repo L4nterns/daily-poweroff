@@ -18,15 +18,18 @@ Install with Cargo:
 
 ```sh
 cargo install daily-poweroff
+sudo install -m 0755 "$HOME/.cargo/bin/daily-poweroff" /usr/local/bin/daily-poweroff
 sudo daily-poweroff install-systemd
 ```
+
+The extra `install` step puts the binary in a system path so `sudo daily-poweroff ...` works even when `sudo` does not include `$HOME/.cargo/bin` in `PATH`.
 
 ## Install From GitHub Releases
 
 Download a prebuilt binary from the project releases page:
 
 ```sh
-VERSION=v0.1.0
+VERSION=v0.1.1
 ARCH=x86_64-unknown-linux-gnu
 curl -L -o daily-poweroff \
   "https://github.com/L4nterns/daily-poweroff/releases/download/${VERSION}/daily-poweroff-${ARCH}"
