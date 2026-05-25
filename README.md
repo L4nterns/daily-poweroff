@@ -18,17 +18,18 @@ Install with Cargo:
 
 ```sh
 cargo install daily-poweroff
-sudo "$HOME/.cargo/bin/daily-poweroff" install-systemd
+sudo install -m 0755 "$HOME/.cargo/bin/daily-poweroff" /usr/local/bin/daily-poweroff
+sudo daily-poweroff install-systemd
 ```
 
-`install-systemd` copies the current binary to `/usr/local/bin/daily-poweroff`, rewrites the systemd unit, migrates `/etc/daily-poweroff.conf`, and restarts the service. Run it again after upgrading with `cargo install`.
+After upgrading with `cargo install --force daily-poweroff`, run the same `install` and `install-systemd` commands again.
 
 ## Install From GitHub Releases
 
 Download a prebuilt binary from the project releases page:
 
 ```sh
-VERSION=v0.1.3
+VERSION=v0.1.4
 ARCH=x86_64-unknown-linux-gnu
 curl -L -o daily-poweroff \
   "https://github.com/L4nterns/daily-poweroff/releases/download/${VERSION}/daily-poweroff-${ARCH}"
@@ -55,7 +56,7 @@ The single binary is generated at:
 target/release/daily-poweroff
 ```
 
-`install-systemd` writes `/etc/systemd/system/daily-poweroff.service`, then runs `systemctl daemon-reload`, `systemctl enable daily-poweroff.service`, and `systemctl restart daily-poweroff.service`.
+`install-systemd` migrates `/etc/daily-poweroff.conf`, writes `/etc/systemd/system/daily-poweroff.service`, then runs `systemctl daemon-reload`, `systemctl enable daily-poweroff.service`, and `systemctl restart daily-poweroff.service`.
 
 This default installation targets Linux systems with systemd and runs the daemon as root.
 

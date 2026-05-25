@@ -585,13 +585,15 @@ fn cmd_install_systemd(args: &[String]) -> Result<(), String> {
     let exe =
         env::current_exe().map_err(|err| format!("failed to locate current executable: {err}"))?;
     let system_bin = Path::new(SYSTEM_BIN_PATH);
-    fs::copy(&exe, system_bin).map_err(|err| {
-        format!(
-            "failed to install {} to {}: {err}. Run this command with sudo.",
-            exe.display(),
-            system_bin.display()
-        )
-    })?;
+    if exe != system_bin {
+        fs::copy(&exe, system_bin).map_err(|err| {
+            format!(
+                "failed to install {} to {}: {err}. Run this command with sudo.",
+                exe.display(),
+                system_bin.display()
+            )
+        })?;
+    }
     fs::set_permissions(system_bin, fs::Permissions::from_mode(0o755)).map_err(|err| {
         format!(
             "failed to set executable permission on {}: {err}",
@@ -615,7 +617,7 @@ fn cmd_install_systemd(args: &[String]) -> Result<(), String> {
     run_systemctl(&["enable", SYSTEMD_SERVICE_NAME])?;
     run_systemctl(&["restart", SYSTEMD_SERVICE_NAME])?;
     println!(
-        "installed {} and restarted {}",
+        "updated {} and restarted {}",
         system_bin.display(),
         SYSTEMD_SERVICE_NAME
     );

@@ -18,17 +18,18 @@ Linux 每日定时关机单程序。一个二进制同时提供配置、取消�
 
 ```sh
 cargo install daily-poweroff
-sudo "$HOME/.cargo/bin/daily-poweroff" install-systemd
+sudo install -m 0755 "$HOME/.cargo/bin/daily-poweroff" /usr/local/bin/daily-poweroff
+sudo daily-poweroff install-systemd
 ```
 
-`install-systemd` 会把当前二进制复制到 `/usr/local/bin/daily-poweroff`，重写 systemd unit，迁移 `/etc/daily-poweroff.conf`，并重启服务。以后通过 `cargo install` 升级后，也需要重新运行一次。
+以后通过 `cargo install --force daily-poweroff` 升级后，也需要重新运行同样的 `install` 和 `install-systemd` 命令。
 
 ## 从 GitHub Releases 安装
 
 从项目 Releases 页面下载预构建二进制：
 
 ```sh
-VERSION=v0.1.3
+VERSION=v0.1.4
 ARCH=x86_64-unknown-linux-gnu
 curl -L -o daily-poweroff \
   "https://github.com/L4nterns/daily-poweroff/releases/download/${VERSION}/daily-poweroff-${ARCH}"
@@ -55,7 +56,7 @@ sudo daily-poweroff install-systemd
 target/release/daily-poweroff
 ```
 
-`install-systemd` 会写入 `/etc/systemd/system/daily-poweroff.service`，并执行 `systemctl daemon-reload`、`systemctl enable daily-poweroff.service` 和 `systemctl restart daily-poweroff.service`。
+`install-systemd` 会迁移 `/etc/daily-poweroff.conf`，写入 `/etc/systemd/system/daily-poweroff.service`，并执行 `systemctl daemon-reload`、`systemctl enable daily-poweroff.service` 和 `systemctl restart daily-poweroff.service`。
 
 默认安装方式面向使用 systemd 的 Linux 系统，并以 root 运行守护进程。
 
