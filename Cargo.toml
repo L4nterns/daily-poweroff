@@ -1,6 +1,6 @@
 [package]
 name = "daily-poweroff"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 description = "A single-binary Linux daily poweroff scheduler with TTY broadcast warnings."
 license = "MIT"

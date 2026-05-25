@@ -74,7 +74,7 @@ fn main() {
 fn run() -> Result<(), String> {
     let (config_path, args) = parse_global_args(env::args().skip(1).collect())?;
     if args.is_empty() {
-        print_usage();
+        print_usage(config_language_or_default(&config_path));
         return Ok(());
     }
 
@@ -95,7 +95,7 @@ fn run() -> Result<(), String> {
         "install-systemd" => cmd_install_systemd(&args[1..]),
         "print-systemd" => cmd_print_systemd(),
         "-h" | "--help" | "help" => {
-            print_usage();
+            print_usage(config_language_or_default(&config_path));
             Ok(())
         }
         other => Err(format!("unknown command: {other}")),
@@ -124,7 +124,20 @@ fn parse_global_args(mut args: Vec<String>) -> Result<(PathBuf, Vec<String>), St
     Ok((config_path, cleaned))
 }
 
-fn print_usage() {
+fn config_language_or_default(config_path: &Path) -> Language {
+    Config::load(config_path)
+        .map(|config| config.language)
+        .unwrap_or(Language::En)
+}
+
+fn print_usage(language: Language) {
+    match language {
+        Language::En => print_usage_en(),
+        Language::ZhCn => print_usage_zh_cn(),
+    }
+}
+
+fn print_usage_en() {
     println!(
         r#"daily-poweroff
 
@@ -155,6 +168,40 @@ Examples:
 
 When no explicit date or --from is given, cancel/resume start from the next
 scheduled poweroff date.
+"#
+    );
+}
+
+fn print_usage_zh_cn() {
+    println!(
+        r#"daily-poweroff
+
+用法：
+  daily-poweroff set HH:MM [--warning-minutes 60,30,15,10,5,3,2,1] [--dry-run true|false]
+  daily-poweroff cancel [YYYY-MM-DD ...]
+  daily-poweroff cancel --days N [--from YYYY-MM-DD]
+  daily-poweroff resume [YYYY-MM-DD ...]
+  daily-poweroff resume --days N [--from YYYY-MM-DD]
+  daily-poweroff status
+  daily-poweroff enable|disable
+  daily-poweroff set-language en|zh-CN
+  daily-poweroff daemon
+  daily-poweroff test-broadcast
+  daily-poweroff install-systemd
+
+全局选项：
+  -c, --config PATH    默认：/etc/daily-poweroff.conf
+
+示例：
+  sudo daily-poweroff set 17:30
+  sudo daily-poweroff cancel
+  sudo daily-poweroff cancel --days 3
+  sudo daily-poweroff cancel --from 2026-05-25 --days 3
+  sudo daily-poweroff resume --days 3
+  sudo daily-poweroff resume 2026-05-26
+  sudo daily-poweroff set-language zh-CN
+
+不指定具体日期或 --from 时，cancel/resume 会从下一次计划关机日期开始。
 "#
     );
 }
@@ -943,8 +990,8 @@ fn message_language_set(language: Language) -> &'static str {
 
 fn message_poweroff_now(language: Language, date: &str, time: String) -> String {
     match language {
-        Language::En => format!("The system is powering off now as scheduled ({date} {time})."),
-        Language::ZhCn => format!("系统现在将按计划关机（{date} {time}）。"),
+        Language::En => format!("Powering off now\nScheduled: {date} {time}"),
+        Language::ZhCn => format!("现在关机\n计划时间：{date} {time}"),
     }
 }
 
@@ -956,11 +1003,11 @@ fn message_poweroff_warning(
 ) -> String {
     match language {
         Language::En => format!(
-            "The system will power off in {} ({date} {time}). To cancel: sudo daily-poweroff cancel",
+            "Poweroff in {}\nScheduled: {date} {time}\nCancel: sudo daily-poweroff cancel",
             human_remaining(remaining, language)
         ),
         Language::ZhCn => format!(
-            "系统将在 {} 后自动关机（{date} {time}）。如需取消：sudo daily-poweroff cancel",
+            "{} 后关机\n计划时间：{date} {time}\n取消：sudo daily-poweroff cancel",
             human_remaining(remaining, language)
         ),
     }

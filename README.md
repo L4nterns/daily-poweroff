@@ -29,7 +29,7 @@ The extra `install` step puts the binary in a system path so `sudo daily-powerof
 Download a prebuilt binary from the project releases page:
 
 ```sh
-VERSION=v0.1.1
+VERSION=v0.1.2
 ARCH=x86_64-unknown-linux-gnu
 curl -L -o daily-poweroff \
   "https://github.com/L4nterns/daily-poweroff/releases/download/${VERSION}/daily-poweroff-${ARCH}"
