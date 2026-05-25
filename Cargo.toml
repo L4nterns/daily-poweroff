@@ -2,6 +2,12 @@
 name = "daily-poweroff"
 version = "0.1.0"
 edition = "2024"
+description = "A single-binary Linux daily poweroff scheduler with TTY broadcast warnings."
+license = "MIT"
+repository = "https://github.com/L4nterns/daily-poweroff"
+readme = "README.md"
+keywords = ["poweroff", "shutdown", "systemd", "scheduler", "linux"]
+categories = ["command-line-utilities"]
 
 [profile.release]
 lto = true
