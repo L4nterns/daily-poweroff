@@ -12,6 +12,15 @@ Linux 每日定时关机单程序。一个二进制同时提供配置、取消�
 - 支持取消或恢复接下来的计划关机日期
 - 支持 dry-run 测试，不真的关机
 
+## 从 crates.io 安装
+
+使用 Cargo 安装：
+
+```sh
+cargo install daily-poweroff
+sudo daily-poweroff install-systemd
+```
+
 ## 从 GitHub Releases 安装
 
 从项目 Releases 页面下载预构建二进制：

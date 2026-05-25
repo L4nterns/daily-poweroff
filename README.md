@@ -12,6 +12,15 @@ A single-binary Linux daily poweroff scheduler. The same executable provides con
 - Cancel or resume upcoming scheduled poweroff dates
 - Dry-run mode for testing without powering off the machine
 
+## Install From crates.io
+
+Install with Cargo:
+
+```sh
+cargo install daily-poweroff
+sudo daily-poweroff install-systemd
+```
+
 ## Install From GitHub Releases
 
 Download a prebuilt binary from the project releases page:
