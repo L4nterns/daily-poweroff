@@ -4,6 +4,7 @@ use std::ffi::c_char;
 use std::fs;
 use std::io;
 use std::os::raw::{c_int, c_long};
+use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::thread;
@@ -12,6 +13,9 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 const DEFAULT_CONFIG_PATH: &str = "/etc/daily-poweroff.conf";
 const DEFAULT_SHUTDOWN_COMMAND: &str = "systemctl poweroff";
 const DEFAULT_WARNING_SECONDS: &[i64] = &[3600, 1800, 900, 600, 300, 180, 120, 60, 30, 10];
+const SYSTEM_BIN_PATH: &str = "/usr/local/bin/daily-poweroff";
+const SYSTEMD_SERVICE_PATH: &str = "/etc/systemd/system/daily-poweroff.service";
+const SYSTEMD_SERVICE_NAME: &str = "daily-poweroff.service";
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Language {
@@ -580,31 +584,65 @@ fn cmd_install_systemd(args: &[String]) -> Result<(), String> {
     }
     let exe =
         env::current_exe().map_err(|err| format!("failed to locate current executable: {err}"))?;
-    let unit = systemd_unit(&exe);
-    let path = Path::new("/etc/systemd/system/daily-poweroff.service");
-    fs::write(path, unit).map_err(|err| {
+    let system_bin = Path::new(SYSTEM_BIN_PATH);
+    fs::copy(&exe, system_bin).map_err(|err| {
         format!(
-            "failed to write {}: {err}. Run this command with sudo.",
-            path.display()
+            "failed to install {} to {}: {err}. Run this command with sudo.",
+            exe.display(),
+            system_bin.display()
+        )
+    })?;
+    fs::set_permissions(system_bin, fs::Permissions::from_mode(0o755)).map_err(|err| {
+        format!(
+            "failed to set executable permission on {}: {err}",
+            system_bin.display()
         )
     })?;
 
-    let _ = Command::new("systemctl").arg("daemon-reload").status();
-    let _ = Command::new("systemctl")
-        .args(["enable", "--now", "daily-poweroff.service"])
-        .status();
-    println!("installed and started {}", path.display());
+    let config_path = Path::new(DEFAULT_CONFIG_PATH);
+    Config::load(config_path)?.save(config_path)?;
+
+    let unit = systemd_unit();
+    let service_path = Path::new(SYSTEMD_SERVICE_PATH);
+    fs::write(service_path, unit).map_err(|err| {
+        format!(
+            "failed to write {}: {err}. Run this command with sudo.",
+            service_path.display()
+        )
+    })?;
+
+    run_systemctl(&["daemon-reload"])?;
+    run_systemctl(&["enable", SYSTEMD_SERVICE_NAME])?;
+    run_systemctl(&["restart", SYSTEMD_SERVICE_NAME])?;
+    println!(
+        "installed {} and restarted {}",
+        system_bin.display(),
+        SYSTEMD_SERVICE_NAME
+    );
     Ok(())
 }
 
 fn cmd_print_systemd() -> Result<(), String> {
-    let exe =
-        env::current_exe().map_err(|err| format!("failed to locate current executable: {err}"))?;
-    print!("{}", systemd_unit(&exe));
+    print!("{}", systemd_unit());
     Ok(())
 }
 
-fn systemd_unit(exe: &Path) -> String {
+fn run_systemctl(args: &[&str]) -> Result<(), String> {
+    let status = Command::new("systemctl")
+        .args(args)
+        .status()
+        .map_err(|err| format!("failed to run systemctl {}: {err}", args.join(" ")))?;
+    if !status.success() {
+        return Err(format!(
+            "systemctl {} failed with status {}",
+            args.join(" "),
+            status
+        ));
+    }
+    Ok(())
+}
+
+fn systemd_unit() -> String {
     format!(
         r#"[Unit]
 Description=Daily Poweroff daemon
@@ -619,7 +657,7 @@ RestartSec=5
 [Install]
 WantedBy=multi-user.target
 "#,
-        exe.display()
+        SYSTEM_BIN_PATH
     )
 }
 
